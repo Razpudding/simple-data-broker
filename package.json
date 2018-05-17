@@ -1,0 +1,34 @@
+{
+  "name": "simple-data-broker",
+  "version": "1.0.0",
+  "description": "This Node server is a simple data broker which accepts POST requests and stores data in a database.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Razpudding/simple-data-broker.git"
+  },
+  "keywords": [
+    "node",
+    "arduino",
+    "http",
+    "mongodb",
+    "simple"
+  ],
+  "author": "Laurens",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Razpudding/simple-data-broker/issues"
+  },
+  "homepage": "https://github.com/Razpudding/simple-data-broker#readme",
+  "dependencies": {
+    "dotenv": "^5.0.1",
+    "express": "^4.16.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.2"
+  }
+}
