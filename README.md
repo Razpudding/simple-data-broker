@@ -2,6 +2,11 @@
 This Node server is a simple data broker which accepts POST requests and stores data in a database.
 
 ## Usage
+1. Set up a mongodb, provide its MongoDB URI in a .env file
+2. Run the server using `npm start`
+3. Test if it runs correctly by sending a correct POST message (see below)
+
+## Features
 
 The server accepts two requests:
 

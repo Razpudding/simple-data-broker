@@ -9,9 +9,18 @@
 */
 
 const express = require('express')        //used to create a webserver
+const mongoose = require('mongoose')
 
-//Will need this later for storing secret stuff
-//require('dotenv').config()
+require('dotenv').config()   //Secret info
+mongoose.Promise = global.Promise //Use the built in ES6 Promise
+
+//Connect to the database as per url provided in the .env file
+mongoose.connect(process.env.MONGO_DB_URL)
+//Store the connection to the db so we can reference it
+const db = mongoose.connection
+let dbConnected = false
+// Import all data models
+const DataPoint = require('./models/dataPoint')
 
 //This is gonna hold our data for now. Will be moved to a database later
 let data = []
@@ -26,7 +35,16 @@ express()
 
 //All this does is show clientside the server is working
 function serveHome(req, res){
-  data.length ? res.send(data) : res.send("Move along sir, nothing to see here")
+  if(dbConnected){
+    DataPoint.find().limit(10)  //TODO: make sure the last results are returned
+      .then(results => {
+        //console.log(results)
+        res.send(results.length < 1? "Move along sir, nothing to see here" : results)
+      })
+  } else {
+    res.status(503)
+    res.send("Database not available (yet)")
+  }
 }
 
 //This function captures the query in the url and saves it to a local data array
@@ -36,18 +54,31 @@ function writeData(req, res){
     let input = req.query  //Capture the query in the request
     console.log(req.url.length)
     if (req.headers['content-length'] > 100 || req.url.length > 5000) {throw 'Request too large to process'};
-    if (!input.id) {throw 'No request id provided'}
+    if (!input.deviceId) {throw 'No device id provided'}
     if (!input.status) {throw 'No status provided in message'}
+    if (isNaN(Number(input.status))) {throw 'Provided status is not a number'}
     //console.log(input)
-    input.messageId = data.length
+
     data.push(input)
     console.log(data)
-    res.status(200)
-    res.send(data)
+
+    const dataPoint = new DataPoint(input)
+    dataPoint
+      .save()
+      .then(newDataPoint => console.log("new data:", newDataPoint))
+      .catch(err => { throw Error(err) })
+      
+      res.status(200)
+      res.send()
+    
   }
-  catch(error){
-    console.log("Client didn't provde the right arguments for the request", error)
+  catch(e){
+    console.log("Client didn't provde the right arguments for the request", e)
     res.status(406)
-    res.send(error)
+    res.send(e)
   }
 }
+
+db.once('open', function() {
+  dbConnected = true
+})
