@@ -5,6 +5,9 @@ const DataPointSchema = mongoose.Schema({
   },
   status: {
     type: Number
+  },
+  deviceInfo: {
+    type: Array
   }
 });
 

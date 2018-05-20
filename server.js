@@ -36,7 +36,8 @@ express()
 //All this does is show clientside the server is working
 function serveHome(req, res){
   if(dbConnected){
-    DataPoint.find().limit(10)  //TODO: make sure the last results are returned
+    //Find the last 10 items (sorted by date stored) while surpressing some unecessary data keys
+    DataPoint.find({}, { _id: 0, apiKey: 0, __v: 0 }).sort({_id:-1}).limit(10)  
       .then(results => {
         //console.log(results)
         res.send(results.length < 1? "Move along sir, nothing to see here" : results)
@@ -47,30 +48,28 @@ function serveHome(req, res){
   }
 }
 
-//This function captures the query in the url and saves it to a local data array
-//Any data is accepted as long as an 'id' and 'status' are provided with the request
+//This function captures the query in the url and saves it to a mongodb
+//Any data is accepted as long as a 'deviceId' and 'status' are provided with the request
 function writeData(req, res){
   try {
     let input = req.query  //Capture the query in the request
-    console.log(req.url.length)
+    //console.log(req)
     if (req.headers['content-length'] > 100 || req.url.length > 5000) {throw 'Request too large to process'};
     if (!input.deviceId) {throw 'No device id provided'}
     if (!input.status) {throw 'No status provided in message'}
     if (isNaN(Number(input.status))) {throw 'Provided status is not a number'}
     //console.log(input)
 
-    data.push(input)
-    console.log(data)
-
+    //data.push(input)
     const dataPoint = new DataPoint(input)
+    dataPoint.deviceInfo.push(input['pvPhase1'])
     dataPoint
       .save()
       .then(newDataPoint => console.log("new data:", newDataPoint))
       .catch(err => { throw Error(err) })
       
-      res.status(200)
-      res.send()
-    
+    res.status(200)
+    res.send()
   }
   catch(e){
     console.log("Client didn't provde the right arguments for the request", e)
