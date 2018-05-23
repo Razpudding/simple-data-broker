@@ -3,11 +3,14 @@ const DataPointSchema = mongoose.Schema({
   deviceId: {
     type: String
   },
+  date: {
+    type: String
+  },
   status: {
     type: Number
   },
-  deviceInfo: {
-    type: Array
+  metrics: {
+    type: String
   }
 });
 

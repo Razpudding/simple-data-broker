@@ -10,6 +10,7 @@
 
 const express = require('express')        //used to create a webserver
 const mongoose = require('mongoose')
+const bodyParser = require('body-parser')
 
 require('dotenv').config()   //Secret info
 mongoose.Promise = global.Promise //Use the built in ES6 Promise
@@ -28,7 +29,7 @@ let data = []
 //This sets up our webserver using the express package
 express()
   .use(express.static('static'))  //Used to serve static files like webpages
-  //.use(bodyParser.urlencoded({extended: true})) //parse requests
+  .use(bodyParser.urlencoded({extended: true})) //parse requests
   .get('/', serveHome)  //serve something when someone goes to the root of our "site"
   .post('/', writeData) //Handle POSTS requests
   .listen(3000)         //Listen for communication on this port
@@ -52,21 +53,39 @@ function serveHome(req, res){
 //Any data is accepted as long as a 'deviceId' and 'status' are provided with the request
 function writeData(req, res){
   try {
-    let input = req.query  //Capture the query in the request
-    //console.log(req)
-    if (req.headers['content-length'] > 100 || req.url.length > 5000) {throw 'Request too large to process'};
-    if (!input.deviceId) {throw 'No device id provided'}
+    let input = req.body  //Capture the query in the request
+    console.log(req.body)
+
+    //Turned the next limit off for testing purposes
+    //if (req.headers['content-length'] > 100 || req.url.length > 5000) {throw 'Request too large to process'};
+    if (!input.meetsysteemId) {throw 'No device id provided'}
     if (!input.status) {throw 'No status provided in message'}
     if (isNaN(Number(input.status))) {throw 'Provided status is not a number'}
-    //console.log(input)
+    if (!input.meetdata) {throw 'No data provided in message'}
+    //let dataPointAmount = input.meetdata.split(';').length
+    //console.log(dataPointAmount)
 
+    let dataPoints = input.meetdata.split(';').map(dp => {
+      //console.log(dp)
+      return {
+        deviceId: input.meetsysteemId,
+        date: new Date(),
+        status: input.status,
+        metrics: dp
+      }
+    })
+    console.log(dataPoints)
+
+    DataPoint.insertMany(dataPoints, function(error, docs) {
+      console.log(docs)
+    });
     //data.push(input)
-    const dataPoint = new DataPoint(input)
-    dataPoint.deviceInfo.push(input['pvPhase1'])
-    dataPoint
-      .save()
-      .then(newDataPoint => console.log("new data:", newDataPoint))
-      .catch(err => { throw Error(err) })
+    // const dataPoint = new DataPoint(input)
+    // dataPoint.deviceInfo.push(input['pvPhase1'])
+    // dataPoint
+    //   .save()
+    //   .then(newDataPoint => console.log("new data:", newDataPoint))
+    //   .catch(err => { throw Error(err) })
       
     res.status(200)
     res.send()
@@ -81,3 +100,4 @@ function writeData(req, res){
 db.once('open', function() {
   dbConnected = true
 })
+
