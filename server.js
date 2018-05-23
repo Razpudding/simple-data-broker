@@ -38,7 +38,7 @@ express()
 function serveHome(req, res){
   if(dbConnected){
     //Find the last 10 items (sorted by date stored) while surpressing some unecessary data keys
-    DataPoint.find({}, { _id: 0, apiKey: 0, __v: 0 }).sort({_id:-1}).limit(10)  
+    DataPoint.find({}, { _id: 0, apiKey: 0, __v: 0 }).sort({_id:-1}).limit(100)  
       .then(results => {
         //console.log(results)
         res.send(results.length < 1? "Move along sir, nothing to see here" : results)
@@ -56,14 +56,13 @@ function writeData(req, res){
     let input = req.body  //Capture the query in the request
     console.log(req.body)
 
-    //Turned the next limit off for testing purposes
+    //Turned the next limit off for testing purposes TODO: turn it on again to reasonable limit
     //if (req.headers['content-length'] > 100 || req.url.length > 5000) {throw 'Request too large to process'};
     if (!input.meetsysteemId) {throw 'No device id provided'}
     if (!input.status) {throw 'No status provided in message'}
     if (isNaN(Number(input.status))) {throw 'Provided status is not a number'}
     if (!input.meetdata) {throw 'No data provided in message'}
-    //let dataPointAmount = input.meetdata.split(';').length
-    //console.log(dataPointAmount)
+
 
     let dataPoints = input.meetdata.split(';').map(dp => {
       //console.log(dp)
@@ -77,18 +76,14 @@ function writeData(req, res){
     console.log(dataPoints)
 
     DataPoint.insertMany(dataPoints, function(error, docs) {
-      console.log(docs)
+      if (error) {
+        console.error('Insert into db failed', err);
+      }
+      else {
+        res.status(200)
+        res.send(docs.length + " docs succesfully inserted into db")
+      }
     });
-    //data.push(input)
-    // const dataPoint = new DataPoint(input)
-    // dataPoint.deviceInfo.push(input['pvPhase1'])
-    // dataPoint
-    //   .save()
-    //   .then(newDataPoint => console.log("new data:", newDataPoint))
-    //   .catch(err => { throw Error(err) })
-      
-    res.status(200)
-    res.send()
   }
   catch(e){
     console.log("Client didn't provde the right arguments for the request", e)
@@ -100,4 +95,3 @@ function writeData(req, res){
 db.once('open', function() {
   dbConnected = true
 })
-
