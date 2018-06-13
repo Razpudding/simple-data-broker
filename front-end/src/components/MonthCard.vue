@@ -1,7 +1,7 @@
 <template>
   <v-card width="100%" class="month-card">
     <v-toolbar flat>
-      <v-toolbar-title>{{ title }}</v-toolbar-title>
+      <v-toolbar-title>{{ month.name }}</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn icon>
         <v-icon>cloud_download</v-icon>
@@ -9,9 +9,9 @@
     </v-toolbar>
     <v-divider></v-divider>
     <v-list dense class="pt-0">
-      <v-list-tile v-for="item in items" :key="item.title">
+      <v-list-tile v-for="week in month.weeks" :key="week.name">
         <v-list-tile-content>
-          <v-list-tile-title>{{ item.title }}</v-list-tile-title>
+          <v-list-tile-title>Week {{ week.name }}</v-list-tile-title>
         </v-list-tile-content>
         <v-btn icon>
           <v-icon>cloud_download</v-icon>
@@ -25,16 +25,10 @@
   export default {
     data () {
       return {
-        items: [
-          { title: 'Week 1'},
-          { title: 'Week 2'},
-          { title: 'Week 3'},
-          { title: 'Week 4'}
-        ],
         right: null
       }
     },
-    props: ["title"]
+    props: ["month"]
   }
 </script>
 
