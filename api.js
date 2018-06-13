@@ -12,12 +12,30 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/months', async (req, res) => {
-  const data = await DataPoint.find({});
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  const { year } = req.query
+  
+  if (!year) {
+    res.status(422);
+    res.send("Missing parameter 'year'");
+  }
+
+  const startDate = new Date(year, 0, 1);
+
+  const endDate = new Date(startDate.getFullYear() + 1, 0, 1)
+
+  const data = await DataPoint.find({
+    date: {
+        $gte: startDate,
+        $lt: endDate
+    }
+  })
 
   const groups = data.reduce((collection, dataPoint) => {
     const date = new Date(dataPoint.date)
     const m = date.getMonth()
-    const monthName = moment(m, 'M').format('MMMM')
+    const monthName = moment(m + 1, 'M').format('MMMM')
 
     const month = collection.find(month => month.name === monthName);
 
@@ -25,6 +43,22 @@ router.get('/months', async (req, res) => {
 
     return collection;
   }, [])
+  .sort((a, b) => {
+    return months.indexOf(a.name) - months.indexOf(b.name);
+  })
+  .map(month => {
+    const weeks = month.data.reduce((collection, dataPoint) => {
+      const w = Math.floor(new Date(dataPoint.date).getDate() / 7) + 1;
+
+      collection[w] ? collection[w].data.push(dataPoint) : collection[w] = { name: w, data: [dataPoint]};
+
+      return collection;
+    }, {})
+
+    month.weeks = weeks
+
+    return month
+  })
 
   res.send(groups)
 });
