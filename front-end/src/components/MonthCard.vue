@@ -1,5 +1,5 @@
 <template>
-  <v-card width="100%">
+  <v-card width="100%" class="month-card">
     <v-toolbar flat>
       <v-toolbar-title>{{ title }}</v-toolbar-title>
       <v-spacer></v-spacer>
@@ -9,7 +9,7 @@
     </v-toolbar>
     <v-divider></v-divider>
     <v-list dense class="pt-0">
-      <v-list-tile v-for="item in items" :key="item.title" @click="">
+      <v-list-tile v-for="item in items" :key="item.title">
         <v-list-tile-content>
           <v-list-tile-title>{{ item.title }}</v-list-tile-title>
         </v-list-tile-content>
@@ -37,3 +37,9 @@
     props: ["title"]
   }
 </script>
+
+<style>
+  .month-card .list__tile {
+    padding-right: 0;
+  }
+</style>
