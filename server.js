@@ -12,6 +12,7 @@ const express = require('express')        //used to create a webserver
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const moment = require('moment')
+const cors = require('cors')
 const generateMockData = require('./generateMockData')
 
 //Api module
@@ -33,6 +34,7 @@ let data = []
 
 //This sets up our webserver using the express package
 const app = express()
+app.use(cors())
 
 app.use(express.static('front-end/dist'))  //Used to serve static files like webpages
 
