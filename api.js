@@ -1,6 +1,7 @@
-const express = require('express');
-const moment = require('moment');
+const express = require('express')
+const moment = require('moment')
 const jsonfile = require('jsonfile')
+const Json2csvParser = require('json2csv').Parser;
 
 const router = express.Router();
 
@@ -110,25 +111,34 @@ router.get('/dump', async (req, res) => {
       $lte: endDate
     }
   })
+
+  console.log(DataPoint.schema);
   
   var mkdirp = require('mkdirp');
   
   const dirName = './data'
-  const fileName = `data_${data[0].date}_${data[data.length - 1].date}.json`
+  const fileName = `data_${data[0].date}_${data[data.length - 1].date}.csv`
     
   mkdirp(dirName, function (err) {
     if (err) console.error(err)
-    else {
-      jsonfile.writeFile(`${dirName}/${fileName}`, data, function(err) {
-        if (err) console.error(err)
 
-        res.sendFile(`${__dirname}/${dirName}/${fileName}`, {
-            headers: {
-              'Content-Type': 'application/json',
-              'Content-Disposition': `attachment; filename=${fileName}`
-            }
-        })
+    else {
+      const parser = new Json2csvParser({
+        fields: [ ...Object.keys(DataPoint.schema.obj) ],
       })
+
+      const csv = parser.parse(data)
+
+      if (err) {
+        console.log(err);
+      }
+
+      res.set({
+        'Content-Disposition': `attachment; filename=${fileName}`,
+        'Content-Type': 'text/csv'
+      })
+
+      res.send(csv);
     }
   });
 })
