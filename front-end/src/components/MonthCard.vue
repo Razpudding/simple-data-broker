@@ -3,7 +3,7 @@
     <v-toolbar flat>
       <v-toolbar-title>{{ month.name }}</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn icon>
+      <v-btn :href="`http://localhost:3000/api/dump?startdate=${month.startDate}&enddate=${month.endDate}`" icon>
         <v-icon>cloud_download</v-icon>
       </v-btn>
     </v-toolbar>
@@ -13,7 +13,7 @@
         <v-list-tile-content>
           <v-list-tile-title>Week {{ week.name }}</v-list-tile-title>
         </v-list-tile-content>
-        <v-btn icon>
+        <v-btn :href="`http://localhost:3000/api/dump?startdate=${week.startDate}&enddate=${week.endDate}`" icon>
           <v-icon>cloud_download</v-icon>
         </v-btn>
       </v-list-tile>

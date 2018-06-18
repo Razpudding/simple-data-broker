@@ -1,9 +1,12 @@
 const express = require('express');
 const moment = require('moment');
+const jsonfile = require('jsonfile')
 
 const router = express.Router();
 
 const DataPoint = require('./models/dataPoint')
+
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 router.get('/', async (req, res) => {
   res.send('API here!');
@@ -12,8 +15,6 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/months', async (req, res) => {
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
   const { year } = req.query
   
   if (!year) {
@@ -21,9 +22,9 @@ router.get('/months', async (req, res) => {
     res.send("Missing parameter 'year'");
   }
 
-  const startDate = new Date(year, 0, 1);
+  const startDate = new Date(year, 0, 2);
 
-  const endDate = new Date(startDate.getFullYear() + 1, 0, 1)
+  const endDate = new Date(new Date().setFullYear(new Date(startDate).getFullYear() + 1))
 
   const data = await DataPoint.find({
     date: {
@@ -32,7 +33,9 @@ router.get('/months', async (req, res) => {
     }
   })
 
-  const groups = data.reduce((collection, dataPoint) => {
+  const groups = data
+  //Sort data by month
+  .reduce((collection, dataPoint) => {
     const date = new Date(dataPoint.date)
     const m = date.getMonth()
     const monthName = moment(m + 1, 'M').format('MMMM')
@@ -43,24 +46,93 @@ router.get('/months', async (req, res) => {
 
     return collection;
   }, [])
+  //Get start and enddate of the month
+  .map(month => {
+    const monthNumber = months.indexOf(month.name)
+
+    const startDate = new Date(year, monthNumber, 1)
+    const endDate = new Date(year, monthNumber + 1, 1)
+
+    month.startDate = startDate
+    month.endDate = endDate
+
+    return month
+  })
+  //Sort months in the right order
   .sort((a, b) => {
     return months.indexOf(a.name) - months.indexOf(b.name);
   })
+  //Calculate the amount of weeks per month
   .map(month => {
+    console.log(month);
+    //Sort data by week
     const weeks = month.data.reduce((collection, dataPoint) => {
-      const w = Math.floor(new Date(dataPoint.date).getDate() / 7) + 1;
+      const w = Math.ceil((new Date(dataPoint.date).getDate()) / 7);
+
+      console.log(w, dataPoint.date);
 
       collection[w] ? collection[w].data.push(dataPoint) : collection[w] = { name: w, data: [dataPoint]};
 
       return collection;
     }, {})
 
+    for (key in weeks) {
+      weeks[key].startDate = weeks[key].data[0].date
+      weeks[key].endDate = weeks[key].data[weeks[key].data.length - 1].date
+    }
+
     month.weeks = weeks
+
+    return month
+  })
+  //Remove all datapoints because they don't have to be sent to the client
+  .map(month => {
+    // delete month.data;
+
+    for (var key in month.weeks) {
+      // delete month.weeks[key].data;
+    }
 
     return month
   })
 
   res.send(groups)
 });
+
+router.get('/dump', async (req, res) => {
+  const { startdate, enddate } = req.query
+
+  const startDate = new Date(startdate.replace(' ', '+'))
+  
+  const endDate = new Date(enddate.replace(' ', '+'))
+
+  const data = await DataPoint.find({
+    date: {
+      $gte: startDate,
+      $lte: endDate
+    }
+  })
+  
+  var mkdirp = require('mkdirp');
+  
+  const dirName = './data'
+  const fileName = `data_${data[0].date}_${data[data.length - 1].date}.json`
+    
+  mkdirp(dirName, function (err) {
+    if (err) console.error(err)
+    else {
+      jsonfile.writeFile(`${dirName}/${fileName}`, data, function(err) {
+        if (err) console.error(err)
+
+        res.sendFile(`${__dirname}/${dirName}/${fileName}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Disposition': `attachment; filename=${fileName}`
+            }
+        })
+      })
+    }
+  });
+})
 
 module.exports = router;
