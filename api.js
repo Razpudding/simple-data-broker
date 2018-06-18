@@ -64,12 +64,9 @@ router.get('/months', async (req, res) => {
   })
   //Calculate the amount of weeks per month
   .map(month => {
-    console.log(month);
     //Sort data by week
     const weeks = month.data.reduce((collection, dataPoint) => {
       const w = Math.ceil((new Date(dataPoint.date).getDate()) / 7);
-
-      console.log(w, dataPoint.date);
 
       collection[w] ? collection[w].data.push(dataPoint) : collection[w] = { name: w, data: [dataPoint]};
 
@@ -87,10 +84,11 @@ router.get('/months', async (req, res) => {
   })
   //Remove all datapoints because they don't have to be sent to the client
   .map(month => {
-    // delete month.data;
+    //Remove unused data
+    delete month.data;
 
     for (var key in month.weeks) {
-      // delete month.weeks[key].data;
+      delete month.weeks[key].data;
     }
 
     return month
