@@ -25,7 +25,7 @@
       </v-layout>
 
       <v-flex v-else-if="!error && !loading" v-for="month in months" :key="month.name" xs12 sm6 md3 xl2>
-        <MonthCard :month="month"/>
+        <MonthCard :month="month" v-on:removeData="onRemoveData"/>
       </v-flex>
     </v-layout>
   </v-container>
@@ -73,6 +73,23 @@ export default {
           this.loading = false;
           this.error = err;
         })
+    },
+    onRemoveData({ startDate, endDate, monthName, weekNumber }) {
+      if (weekNumber) {
+        const month = this.months.find(month => month.name === monthName)
+
+        this.$delete(month.weeks, weekNumber)
+
+        console.log(Object.keys(month.weeks).length)
+
+        if (!Object.keys(month.weeks).length) {
+          this.months.filter(month => month.name !== monthName)
+        }
+      } else {
+        console.log('delete month')
+
+        this.months = this.months.filter(month => month.name !== monthName)
+      }
     }
   }
 }

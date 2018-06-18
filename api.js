@@ -133,4 +133,22 @@ router.get('/dump', async (req, res) => {
   });
 })
 
+router.get('/delete', async (req, res) => {
+  const { startdate, enddate } = req.query
+
+  const startDate = new Date(startdate.replace(' ', '+'))
+  
+  const endDate = new Date(enddate.replace(' ', '+'))
+
+  setTimeout(async () => {
+    res.send(await DataPoint.remove({
+      date: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    }))
+  }, 3000);
+
+})
+
 module.exports = router;
