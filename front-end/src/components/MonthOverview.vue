@@ -74,20 +74,16 @@ export default {
           this.error = err;
         })
     },
-    onRemoveData({ startDate, endDate, monthName, weekNumber }) {
+    onRemoveData({ monthName, weekNumber }) {
       if (weekNumber) {
         const month = this.months.find(month => month.name === monthName)
 
         this.$delete(month.weeks, weekNumber)
 
-        console.log(Object.keys(month.weeks).length)
-
         if (!Object.keys(month.weeks).length) {
           this.months.filter(month => month.name !== monthName)
         }
       } else {
-        console.log('delete month')
-
         this.months = this.months.filter(month => month.name !== monthName)
       }
     }

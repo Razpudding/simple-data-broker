@@ -100,7 +100,7 @@
             this.weekDialog = false
             this.awaitingResponse = false
 
-            this.$emit('removeData', { startDate, endDate, monthName, weekNumber })
+            this.$emit('removeData', { monthName, weekNumber })
           })
           .catch(error => {
             console.log(error)
