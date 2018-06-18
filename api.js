@@ -140,15 +140,12 @@ router.get('/delete', async (req, res) => {
   
   const endDate = new Date(enddate.replace(' ', '+'))
 
-  setTimeout(async () => {
-    res.send(await DataPoint.remove({
-      date: {
-        $gte: startDate,
-        $lte: endDate
-      }
-    }))
-  }, 3000);
-
+  res.send(await DataPoint.remove({
+    date: {
+      $gte: startDate,
+      $lte: endDate
+    }
+  }))
 })
 
 module.exports = router;
