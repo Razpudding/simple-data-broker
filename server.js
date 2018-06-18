@@ -11,6 +11,12 @@
 const express = require('express')        //used to create a webserver
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
+const moment = require('moment')
+const cors = require('cors')
+const generateMockData = require('./generateMockData')
+
+//Api module
+const api = require('./api')
 
 require('dotenv').config()   //Secret info
 mongoose.Promise = global.Promise //Use the built in ES6 Promise
@@ -27,34 +33,28 @@ const DataPoint = require('./models/dataPoint')
 let data = []
 
 //This sets up our webserver using the express package
-express()
-  .use(express.static('static'))  //Used to serve static files like webpages
-  .use(bodyParser.urlencoded({extended: true})) //parse requests
-  .get('/', serveHome)  //serve something when someone goes to the root of our "site"
-  .post('/', writeData) //Handle POSTS requests
-  .listen(3000)         //Listen for communication on this port
+const app = express()
+app.use(cors())
 
-//All this does is show clientside the server is working
-function serveHome(req, res){
-  if(dbConnected){
-    //Find the last 10 items (sorted by date stored) while surpressing some unecessary data keys
-    DataPoint.find({}, { _id: 0, apiKey: 0, __v: 0 }).sort({_id:-1}).limit(100)  
-      .then(results => {
-        //console.log(results)
-        res.send(results.length < 1? "Move along sir, nothing to see here" : results)
-      })
-  } else {
-    res.status(503)
-    res.send("Database not available (yet)")
-  }
-}
+app.use(express.static('front-end/dist'))  //Used to serve static files like webpages
+
+app.use(bodyParser.urlencoded({extended: true})) //parse requests
+
+//Routes
+app.post('/', writeData) //Handle POSTS requests
+app.use('/api', api);
 
 //This function captures the query in the url and saves it to a mongodb
 //Any data is accepted as long as a 'deviceId' and 'status' are provided with the request
 function writeData(req, res){
+  console.log(req.body);
   try {
     let input = req.body  //Capture the query in the request
     console.log(req.body)
+
+    if (!req.body.meetdata) req.body.meetdata = generateMockData();
+
+    console.log(req.body);
 
     //Turned the next limit off for testing purposes TODO: turn it on again to reasonable limit
     //if (req.headers['content-length'] > 100 || req.url.length > 5000) {throw 'Request too large to process'};
@@ -64,15 +64,20 @@ function writeData(req, res){
     if (!input.meetdata) {throw 'No data provided in message'}
 
 
-    let dataPoints = input.meetdata.split(';').map(dp => {
+    const dataPoints = input.meetdata.split(';').map(dp => {
       //console.log(dp)
+
+      const dateString = dp.substr(0, 6);
+      const date = moment(dateString, "DDMMYY").format();
+
       return {
         deviceId: input.meetsysteemId,
-        date: new Date(),
+        date: new Date(date),
         status: input.status,
         metrics: dp
       }
     })
+
     console.log(dataPoints)
 
     DataPoint.insertMany(dataPoints, function(error, docs) {
@@ -95,3 +100,5 @@ function writeData(req, res){
 db.once('open', function() {
   dbConnected = true
 })
+
+app.listen(3000) //Listen for communication on this port

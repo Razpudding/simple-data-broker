@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
+
 const DataPointSchema = mongoose.Schema({
   deviceId: {
     type: String
   },
   date: {
-    type: String
+    type: Date
   },
   status: {
     type: Number
