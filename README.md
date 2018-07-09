@@ -1,16 +1,37 @@
 # simple-data-broker
-This Node server is a simple data broker which accepts POST requests and stores data in a database.
+This Node server is a simple data broker which accepts POST requests and stores data in a database. It was designed to catch information sent by IOT devices.
 
 ## Usage
 1. Set up a mongodb, provide its MongoDB URI in a .env file
-2. Run the server using `npm start`
+2. Run `npm install` in the cloned repo
+3. Run the server using `npm start`
 3. Test if it runs correctly by sending a correct POST message (see below)
 
 ## Features
 
-Feature #1 is a work in progress. Currently I'm trying to figure out how to send larger amounts of data in one post request.
-The server accepts two requests:
+### Saving data
+If data is sent to the server in the correct format at the port defined in the code (3000 by standard) it will be stored in the MongoDB specified in the .env file.
 
-1. `POST /` If a message is posted to the root of the server following this format: {deviceId:String, status:Number, [additional optional params]} the server will store the message in a database table as is. Both the `deviceId` and the `status` are required. The request should be a valid POST request with all data values provided as query parameters. After testing I found out the following content types will work (application/x-www-form-urlencoded, multipart/form-data, no content-type provided) although i'm not 100% sure on that last one. If the post request does not meet the requirements, a message will be sent back explaining why it was rejected alongside  4xx HTTP STATUS
+The server expects POST requests with the following urlencoded body parameters
 
-2. `GET /` If the root of the server is requested, all available data is dumped back to the requester. Note: I have no idea how stable that is or how long the data is allowed to be for this to work. This is purely a test feature and should prob be protected.
+*meetsysteemId* __String__ REQUIRED
+*status* __Number__ REQUIRED
+*meetdata* __STRING__ REQUIRED
+
+The resulting POST request could look something like this
+```
+POST / HTTP/1.1
+Host: 111.222.333.4:3000
+Content-Type: application/x-www-form-urlencoded
+Cache-Control: no-cache
+
+meetsysteemId=myDevice&status=42&meetdata=someText
+```
+
+`meetdata` Is meant to contain a long string of information sent by the device.
+
+If the request is formatted correctly, the data will be stored in the database and a status of 200 is sent back to the client as well as the amount of saved data objects.
+If the request does not follow this format the server will send back a 406 status along with some helpful info.
+
+### Showing stored data
+If a GET request is sent to the root of the server, JSON data will be sent back showing the last 100 or so datapoints stored in the database. This is purely for testing purposes.

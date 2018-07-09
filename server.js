@@ -5,7 +5,6 @@
 
 /*
 * Try node-inspector for server side debugging
-* Use something like this to render the data on get client-side / https://github.com/caldwell/renderjson
 */
 
 const express = require('express')        //used to create a webserver
@@ -54,10 +53,8 @@ function serveHome(req, res){
 function writeData(req, res){
   try {
     let input = req.body  //Capture the query in the request
-    console.log(req.body)
-
-    //Turned the next limit off for testing purposes TODO: turn it on again to reasonable limit
-    //if (req.headers['content-length'] > 100 || req.url.length > 5000) {throw 'Request too large to process'};
+    //console.log(req.body)
+    //check if the input is valid
     if (!input.meetsysteemId) {throw 'No device id provided'}
     if (!input.status) {throw 'No status provided in message'}
     if (isNaN(Number(input.status))) {throw 'Provided status is not a number'}
@@ -73,11 +70,11 @@ function writeData(req, res){
         metrics: dp
       }
     })
-    console.log(dataPoints)
+    //console.log(dataPoints)
 
     DataPoint.insertMany(dataPoints, function(error, docs) {
       if (error) {
-        console.error('Insert into db failed', err);
+        console.error('Insert into db failed', error);
       }
       else {
         res.status(200)
@@ -86,7 +83,7 @@ function writeData(req, res){
     });
   }
   catch(e){
-    console.log("Client didn't provde the right arguments for the request", e)
+    console.log("Client didn't provide the right arguments for the request", e)
     res.status(406)
     res.send(e)
   }
