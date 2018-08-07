@@ -14,16 +14,23 @@ const bodyParser = require('body-parser')
 require('dotenv').config()   //Secret info
 mongoose.Promise = global.Promise //Use the built in ES6 Promise
 
+//Set the right URL and connection options for Mongoose
+const mongooseURL = process.env.MONGO_DB_URL
+const mongooseOptions = {auto_reconnect: true, reconnectInterval: 10000, connectTimeoutMS: 30000}
+
 //Connect to the database as per url provided in the .env file
-mongoose.connect(process.env.MONGO_DB_URL)
+//The application will wait for 30s before attempting this to allow the server to boot up mongodb
+//I tried doing this through the mongoose options but it doesn't seem to work correctly.
+setTimeout(() =>{
+  mongoose.connect(mongooseURL, mongooseOptions)
+  .then(
+    () => {},
+    err => console.log(err))}, 30000)
 //Store the connection to the db so we can reference it
 const db = mongoose.connection
 let dbConnected = false
 // Import all data models
 const DataPoint = require('./models/dataPoint')
-
-//This is gonna hold our data for now. Will be moved to a database later
-let data = []
 
 //This sets up our webserver using the express package
 express()
@@ -89,6 +96,21 @@ function writeData(req, res){
   }
 }
 
+//Some helper functions to detect if anything goes wrong with the db connection
 db.once('open', function() {
   dbConnected = true
+  console.log('MongoDB connection opened!');
+})
+db.on('connecting', function() {
+  console.log('connecting to MongoDB...');
+})
+db.on('error', function(error) {
+  console.error('Error in MongoDb connection: ' + error)
+   //mongoose.disconnect();
+})
+db.on('reconnected', function () {
+  console.log('MongoDB reconnected!');
+})
+db.on('disconnected', function() {
+  console.log('MongoDB disconnected!');  
 })
