@@ -10,6 +10,7 @@
 const express = require('express')        //used to create a webserver
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
+const logStamp = require('log-timestamp')
 
 require('dotenv').config()   //Secret info
 mongoose.Promise = global.Promise //Use the built in ES6 Promise
@@ -90,7 +91,7 @@ function writeData(req, res){
     });
   }
   catch(e){
-    console.log("Client didn't provide the right arguments for the request", e)
+    console.error("Client didn't provide the right arguments for the request:", e)
     res.status(406)
     res.send(e)
   }
