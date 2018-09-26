@@ -1,3 +1,6 @@
+# Custom files
+*.sh
+
 # Logs
 logs
 *.log
