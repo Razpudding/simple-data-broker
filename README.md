@@ -3,9 +3,10 @@ This Node server is a simple data broker which accepts POST requests and stores 
 
 ## Usage
 1. Set up a mongodb, provide its MongoDB URI in a .env file
-2. Run `npm install` in the cloned repo
-3. Run the server using `npm start`
-3. Test if it runs correctly by sending a correct POST message (see below)
+2. Clone this repo and cd into the cloned folder
+3. Run `npm install` in that folder
+4. Run the server using `npm start`
+5. Test if it runs correctly by sending a correct POST message (see below)
 
 ## Features
 
