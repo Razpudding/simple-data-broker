@@ -29,7 +29,7 @@
     "dotenv": "^5.0.1",
     "express": "^4.17.1",
     "log-timestamp": "^0.2.1",
-    "mongoose": "^5.5.13"
+    "mongoose": "^5.7.5"
   },
   "devDependencies": {
     "nodemon": "^1.19.1"
